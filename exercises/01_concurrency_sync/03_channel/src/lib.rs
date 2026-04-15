@@ -18,7 +18,14 @@ pub fn simple_send_recv(items: Vec<String>) -> Vec<String> {
     // TODO: Spawn thread to send each element in items
     // TODO: In main thread, receive all messages and collect into Vec
     // Hint: When all Senders are dropped, recv() returns Err
-    todo!()
+    let (tx, rx) = mpsc::channel();
+    // tx: transmitter, rx: receiver
+    thread::spawn(move || {
+        for item in items {
+            tx.send(item).unwrap();
+        }
+    });
+    rx.into_iter().collect()
 }
 
 /// Create `n_producers` producer threads, each sending a message in format `"msg from {id}"`.
@@ -30,7 +37,16 @@ pub fn multi_producer(n_producers: usize) -> Vec<String> {
     // TODO: Clone a sender for each producer
     // TODO: Remember to drop the original sender, otherwise receiver won't finish
     // TODO: Collect all messages and sort
-    todo!()
+    let (tx, rx) = mpsc::channel();
+    for i in 0..n_producers {
+        let tx_clone = tx.clone(); // clone了才需要手工drop
+        thread::spawn(move || {
+            let msg = format!("msg fron {}", i);
+            tx_clone.send(msg).unwrap();
+        });
+    }
+    drop(tx); // rx.into_iter() 需要所有 tx（包括克隆的）都被 drop 才能结束。主线程的原始 tx 如果不 drop，即使工作线程都完成了，接收端也会永远等待主线程可能发送的消息。
+    rx.into_iter().collect()
 }
 
 #[cfg(test)]
