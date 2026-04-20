@@ -22,7 +22,7 @@ pub async fn concurrent_squares(n: usize) -> Vec<usize> {
     for i in 0..n {
         let handle: JoinHandle<usize> = tokio::spawn(async move {
             sleep(Duration::from_millis(10)).await;
-            i
+            i * i
         });
         handles.push(handle);
     }

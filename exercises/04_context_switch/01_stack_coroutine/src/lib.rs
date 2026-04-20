@@ -16,6 +16,8 @@
 #![cfg(target_arch = "riscv64")]
 
 use std::vec;
+use core::arch::{naked_asm, asm};
+use alloc::vec::Vec;
 
 /// Saved register state for one task (riscv64). Layout must match the offsets used in the asm below: for one task (riscv64). Layout must match the offsets used in the asm below:
 /// `sp` at 0, `ra` at 8, then `s0`–`s11` at 16, 24, … 104.

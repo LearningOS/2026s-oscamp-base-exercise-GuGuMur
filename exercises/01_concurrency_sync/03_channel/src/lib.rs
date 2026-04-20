@@ -41,12 +41,14 @@ pub fn multi_producer(n_producers: usize) -> Vec<String> {
     for i in 0..n_producers {
         let tx_clone = tx.clone(); // clone了才需要手工drop
         thread::spawn(move || {
-            let msg = format!("msg fron {}", i);
+            let msg = format!("msg from {}", i);
             tx_clone.send(msg).unwrap();
         });
     }
     drop(tx); // rx.into_iter() 需要所有 tx（包括克隆的）都被 drop 才能结束。主线程的原始 tx 如果不 drop，即使工作线程都完成了，接收端也会永远等待主线程可能发送的消息。
-    rx.into_iter().collect()
+    let mut temp: Vec<String> = rx.into_iter().collect();
+    temp.sort();
+    temp
 }
 
 #[cfg(test)]

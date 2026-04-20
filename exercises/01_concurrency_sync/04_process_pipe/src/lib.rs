@@ -104,7 +104,12 @@ pub fn pipe_through_cat(input: &str) -> String {
     drop(stdin);
 
     let mut output = String::new();
-    child.stdout.take().unwrap().read_to_string(&mut output).unwrap();
+    child
+        .stdout
+        .take()
+        .unwrap()
+        .read_to_string(&mut output)
+        .unwrap();
     child.wait().unwrap();
     output
 }
@@ -192,7 +197,30 @@ pub fn pipe_through_grep(pattern: &str, input: &str) -> String {
     // TODO: Drop stdin to close pipe
     // TODO: Read output from child stdout line by line
     // TODO: Collect and return matching lines
-    todo!()
+    let mut child = Command::new("grep")
+        .arg(pattern)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("Failed to spawn grep");
+
+    if let Some(mut stdin) = child.stdin.take() {
+        stdin
+            .write_all(input.as_bytes())
+            .expect("Failed to write to stdin");
+        drop(stdin);
+    }
+
+    let mut output = String::new();
+    if let Some(mut stdout) = child.stdout.take() {
+        stdout
+            .read_to_string(&mut output)
+            .expect("Failed to read from stdout");
+    }
+
+    child.wait().expect("Failed to wait on child");
+
+    output
 }
 
 #[cfg(test)]
